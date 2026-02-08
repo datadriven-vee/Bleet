@@ -1,0 +1,13 @@
+/* assets/style.css */
+[data-testid="stAppViewContainer"] {
+    background-color: #0e1117; /* Dark modern background */
+    align-items: center;
+    justify-content: center;
+}
+
+div.stButton > button {
+    width: 100%;
+    border-radius: 8px;
+    height: 3em;
+    font-weight: 600;
+}
