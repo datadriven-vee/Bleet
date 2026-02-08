@@ -1,0 +1,4 @@
+.streamlit/secrets.toml
+groqkey.txt
+.env.local
+**/__pycache__/
