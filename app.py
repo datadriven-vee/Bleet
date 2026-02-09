@@ -327,9 +327,21 @@ def view_solve_page():
 # --- 4. MAIN ROUTER ---
 
 # Sidebar Navigation
+# --- 4. MAIN ROUTER ---
+
+# Callback to close the question when you switch modes
+def reset_question_state():
+    st.session_state.selected_question = None
+
+# Sidebar Navigation
 with st.sidebar:
     st.title("🐑 Bleet")
-    mode = st.radio("Mode", ["Library Practice", "Custom Generator"])
+    # ADDED: on_change=reset_question_state
+    mode = st.radio(
+        "Mode", 
+        ["Library Practice", "Custom Generator"], 
+        on_change=reset_question_state
+    )
     st.divider()
 
 if st.session_state.selected_question:
