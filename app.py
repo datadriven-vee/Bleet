@@ -46,11 +46,11 @@ def extract_text_from_pdf(uploaded_file):
 
 def generate_custom_questions(resume_text, jd_text):
     """
-    Uses Llama 3 to generate 10 HIGH-SPECIFICITY behavioral questions.
-    It forces the AI to reference specific resume projects/tools to avoid generic questions.
+    Uses Llama 3 to generate 7 HIGH-LEVEL BEHAVIORAL questions.
+    Critically tuned to avoid technical "how-to" questions while still referencing resume context.
     """
     prompt = f"""
-    You are a "Bar Raiser" interviewer at a top tech company (like Amazon or Google).
+    You are a Bar Raiser at a top tech company (Amazon/Google style). 
     I will provide a Candidate's Resume and a Job Description.
 
     ### CANDIDATE RESUME
@@ -60,19 +60,22 @@ def generate_custom_questions(resume_text, jd_text):
     {jd_text[:2500]}
 
     ### YOUR GOAL
-    Generate 7 TOUGH behavioral interview questions. 
-    
-    ### CRITICAL RULES (Follow these or you fail):
-    1. **NO GENERIC QUESTIONS:** Do NOT ask "Tell me about a time you worked in a team."
-    2. **USE RESUME DETAILS:** You MUST mention a specific project, tool, or experience from the resume in every question.
-       - *Bad:* "Tell me about a challenge."
-       - *Good:* "In your 'InsightBot' project, you used LangChain. Tell me about a specific limitation you found in LangChain and how you worked around it."
-    3. **FOCUS ON FAILURE & CONFLICT:**
-       - Ask about missed deadlines.
-       - Ask about disagreeing with a manager.
-       - Ask about a technical tradeoff that went wrong.
-    4. **JOB ALIGNMENT:**
-       - If the JD requires "Snowflake", ask: "Tell me about a time you had to optimize a slow SQL query in Snowflake or a similar DB. What was the bottleneck?"
+    Generate 7 DEEP BEHAVIORAL interview questions.
+
+    ### THE GOLDEN RULE (READ CAREFULLY):
+    You must use the candidate's resume to set the CONTEXT, but the QUESTION must be about SOFT SKILLS (Leadership, Conflict, Ambiguity, Ethics).
+
+    ### DO NOT ASK TECHNICAL QUESTIONS:
+    - ❌ BAD: "How did you implement Llama-2?" (This is technical)
+    - ❌ BAD: "What parameters did you tune in the model?" (This is technical)
+    - ✅ GOOD: "In your Llama-2 project, you likely faced resource constraints. Tell me about a time you had to cut features or lower quality to meet a deadline. How did you communicate that trade-off to stakeholders?"
+    - ✅ GOOD: "You listed 'Team Lead' on your resume. Tell me about a time a junior engineer on your team wasn't delivering. How did you handle the difficult conversation?"
+
+    ### REQUIRED CATEGORIES:
+    1. **Ambiguity:** "Tell me about a time requirements were unclear..."
+    2. **Conflict:** "Tell me about a disagreement with a product manager..."
+    3. **Failure:** "Tell me about a time you broke production..."
+    4. **Influence:** "Tell me about a time you had to convince a senior leader..."
 
     ### OUTPUT FORMAT
     Return ONLY a raw JSON array. No markdown.
@@ -81,9 +84,9 @@ def generate_custom_questions(resume_text, jd_text):
             "company": "Company Name from JD",
             "role": "Role Title from JD",
             "difficulty": "Hard",
-            "category": "Conflict" OR "Failure" OR "Leadership" OR "Technical_Tradeoff",
-            "question": "The specific question referencing resume details...",
-            "ideal_answer": "Brief STAR guide: Situation (The specific project), Task, Action (What they specifically did), Result."
+            "category": "Conflict" OR "Failure" OR "Leadership" OR "Ambiguity",
+            "question": "The specific behavioral question...",
+            "ideal_answer": "Brief STAR guide focused on soft skills."
         }},
         ... (7 items)
     ]
@@ -93,7 +96,7 @@ def generate_custom_questions(resume_text, jd_text):
         completion = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7, 
+            temperature=0.6, # Lower temperature to strictly follow the "No Tech" rule
             response_format={"type": "json_object"}
         )
         result = json.loads(completion.choices[0].message.content)
