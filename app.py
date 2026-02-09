@@ -46,34 +46,33 @@ def extract_text_from_pdf(uploaded_file):
 
 def generate_custom_questions(resume_text, jd_text):
     """
-    Uses Llama 3 to generate 10 questions.
-    STRICTLY BEHAVIORAL: Focuses on Soft Skills, Conflict, and Decisions.
+    Uses Llama 3 to generate 10 HIGH-SPECIFICITY behavioral questions.
+    It forces the AI to reference specific resume projects/tools to avoid generic questions.
     """
     prompt = f"""
-    You are a Bar Raiser at a top tech company. I will provide a Resume and a Job Description (JD).
-    
+    You are a "Bar Raiser" interviewer at a top tech company (like Amazon or Google).
+    I will provide a Candidate's Resume and a Job Description.
+
+    ### CANDIDATE RESUME
+    {resume_text[:2500]}
+
     ### JOB DESCRIPTION
-    {jd_text[:2000]}
+    {jd_text[:2500]}
+
+    ### YOUR GOAL
+    Generate 7 TOUGH behavioral interview questions. 
     
-    ### RESUME
-    {resume_text[:2000]}
-    
-    ### TASK
-    Generate exactly 10 PURELY BEHAVIORAL interview questions.
-    
-    ### CRITICAL RULES (DO NOT FAIL THESE):
-    1. **NO TECHNICAL "HOW-TO" QUESTIONS:** - BAD: "Tell me about a time you used Linux to deploy a model." (This is technical)
-       - GOOD: "Tell me about a time you had to deploy a model under a tight deadline with insufficient documentation. How did you handle the pressure?" (This is behavioral)
-    
-    2. **FOCUS ON CONFLICT & AMBIGUITY:**
-       - BAD: "How did you build the API?"
-       - GOOD: "Tell me about a time you disagreed with a Senior Engineer about the API design. How did you resolve the conflict?"
-       
-    3. **FOCUS ON MISTAKES:**
-       - Ask about a time they failed, missed a deadline, or had to pivot a strategy due to a mistake.
-    
-    4. **CULTURE FIT:**
-       - Based on the company name in the JD, ask a question related to their specific leadership principles (e.g. Amazon = Ownership, Google = Googliness).
+    ### CRITICAL RULES (Follow these or you fail):
+    1. **NO GENERIC QUESTIONS:** Do NOT ask "Tell me about a time you worked in a team."
+    2. **USE RESUME DETAILS:** You MUST mention a specific project, tool, or experience from the resume in every question.
+       - *Bad:* "Tell me about a challenge."
+       - *Good:* "In your 'InsightBot' project, you used LangChain. Tell me about a specific limitation you found in LangChain and how you worked around it."
+    3. **FOCUS ON FAILURE & CONFLICT:**
+       - Ask about missed deadlines.
+       - Ask about disagreeing with a manager.
+       - Ask about a technical tradeoff that went wrong.
+    4. **JOB ALIGNMENT:**
+       - If the JD requires "Snowflake", ask: "Tell me about a time you had to optimize a slow SQL query in Snowflake or a similar DB. What was the bottleneck?"
 
     ### OUTPUT FORMAT
     Return ONLY a raw JSON array. No markdown.
@@ -82,11 +81,11 @@ def generate_custom_questions(resume_text, jd_text):
             "company": "Company Name from JD",
             "role": "Role Title from JD",
             "difficulty": "Hard",
-            "category": "Conflict" OR "Leadership" OR "Adaptability" OR "Communication",
-            "question": "The specific behavioral question text",
-            "ideal_answer": "Brief STAR method outline focusing on soft skills"
+            "category": "Conflict" OR "Failure" OR "Leadership" OR "Technical_Tradeoff",
+            "question": "The specific question referencing resume details...",
+            "ideal_answer": "Brief STAR guide: Situation (The specific project), Task, Action (What they specifically did), Result."
         }},
-        ... (10 items total)
+        ... (7 items)
     ]
     """
     
@@ -94,17 +93,17 @@ def generate_custom_questions(resume_text, jd_text):
         completion = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.8, # Higher creativity for behavioral scenarios
+            temperature=0.7, 
             response_format={"type": "json_object"}
         )
         result = json.loads(completion.choices[0].message.content)
         
-        # Handle different JSON structures
+        # Robust JSON extraction
         if isinstance(result, list): return result
         if "questions" in result: return result["questions"]
         if "interview_questions" in result: return result["interview_questions"]
         
-        # Fallback: search for list
+        # Fallback search
         for key, value in result.items():
             if isinstance(value, list): return value
         return []
