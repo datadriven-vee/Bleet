@@ -7,11 +7,8 @@ from streamlit_mic_recorder import mic_recorder
 # --- Helper Functions (Keep standard) ---
 def get_ai_feedback(user_transcript, ideal_answer, question_text, groq_client):
     prompt = f"""
-    Role: Senior Recruiter.
-    Question: "{question_text}"
-    Candidate Answer: "{user_transcript}"
-    Task: Grade based on Relevance, STAR Structure, and Clarity.
-    (Ref Answer Strategy: "{ideal_answer}")
+    Role: Senior Recruiter. Question: "{question_text}" Candidate Answer: "{user_transcript}"
+    Task: Grade based on Relevance, STAR Structure, and Clarity. (Ref Strategy: "{ideal_answer}")
     OUTPUT: Score: [0-100], Verdict: [Strong Hire/Hire/No Hire], Feedback: [Advice]
     """
     completion = groq_client.chat.completions.create(
@@ -27,125 +24,145 @@ def parse_feedback(feedback_text):
     if verdict_match: verdict = verdict_match.group(1).strip()
     return score, verdict, feedback_text
 
-# --- THE MAIN VIEW ---
-# ... (Imports and helper functions stay the same) ...
-
+# --- THE NEW UI VIEW ---
 def view_problem_list(supabase):
-    # Header with a bit more spacing
-    st.markdown("<h1 style='margin-bottom: 20px;'>📚 Problem Library</h1>", unsafe_allow_html=True)
     
-    # 1. Fetch Data
-    response = supabase.table("questions").select("*").order("created_at", desc=True).limit(50).execute()
+    # 1. HEADER & PROGRESS SECTION
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        st.markdown('<h1 class="glow-header">The Arena</h1>', unsafe_allow_html=True)
+        st.caption("Master behavioral interviews. Grind questions. Get hired.")
+    with c2:
+        # Mock Progress Chart (Session Based)
+        # We simulate progress for visual appeal since we don't have login yet
+        solved = st.session_state.get('solved_count', 0)
+        total = 50 
+        progress = min(solved / total, 1.0)
+        
+        st.markdown(f"""
+        <div class="chart-container">
+            <h3 style="margin:0; color:#a78bfa;">Session Progress</h3>
+            <h1 style="margin:0; font-size: 36px; color:white;">{int(progress*100)}%</h1>
+            <p style="color:#64748b; font-size:12px;">{solved} / {total} Questions Conquered</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.progress(progress)
+
+    st.markdown("---")
+
+    # 2. FETCH DATA
+    response = supabase.table("questions").select("*").order("created_at", desc=True).limit(200).execute()
     df = pd.DataFrame(response.data)
 
     if df.empty:
-        st.info("Database is empty. Go generate some questions!")
+        st.info("The Arena is empty. Go generate some questions!")
         return
 
-    # 2. Refined Filter Bar
-    with st.expander("🔍 **Filter Questions**", expanded=True):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            company_filter = st.selectbox("Company", ["All"] + sorted(list(df['company'].dropna().unique())))
-        with c2:
-            role_filter = st.selectbox("Role", ["All"] + sorted(list(df['role'].dropna().unique())))
-        with c3:
-            diff_filter = st.selectbox("Difficulty", ["All", "Easy", "Medium", "Hard"])
+    # 3. INTERACTIVE FILTERS ("Cloud" & Dropdown)
+    col_filter_1, col_filter_2 = st.columns([2, 1])
+    
+    with col_filter_1:
+        # The "Difficulty Cloud" - using a horizontal radio that we styled as tags in CSS
+        st.markdown("**Select Difficulty Level**")
+        diff_filter = st.radio(
+            "Difficulty", 
+            ["All", "Easy", "Medium", "Hard", "Expert"], 
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+        
+    with col_filter_2:
+        # Clean Dropdown for Company
+        st.markdown("**Target Company**")
+        companies = ["All"] + sorted(list(df['company'].dropna().unique()))
+        company_filter = st.selectbox("Company", companies, label_visibility="collapsed")
 
     # Apply Filters
     if company_filter != "All": df = df[df['company'] == company_filter]
-    if role_filter != "All": df = df[df['role'] == role_filter]
     if diff_filter != "All": df = df[df['difficulty'] == diff_filter]
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    # 4. PAGINATION LOGIC (Only show 10 at a time)
+    ITEMS_PER_PAGE = 10
+    if "page_number" not in st.session_state:
+        st.session_state.page_number = 0
 
-    # 3. Render "Classic" Cards
-    for index, row in df.iterrows():
-        # Defaults
+    # Calculate start/end indices
+    total_pages = max(1, (len(df) // ITEMS_PER_PAGE) + (1 if len(df) % ITEMS_PER_PAGE > 0 else 0))
+    # Ensure page number is valid
+    if st.session_state.page_number >= total_pages: st.session_state.page_number = 0
+    
+    start_idx = st.session_state.page_number * ITEMS_PER_PAGE
+    end_idx = start_idx + ITEMS_PER_PAGE
+    
+    # Slice the dataframe
+    df_page = df.iloc[start_idx:end_idx]
+
+    st.markdown(f"<p style='color:#64748b; margin-top: 20px;'>Showing {start_idx+1}-{min(end_idx, len(df))} of {len(df)} questions</p>", unsafe_allow_html=True)
+
+    # 5. RENDER CARDS
+    for index, row in df_page.iterrows():
         diff = row.get('difficulty', 'Medium') or 'Medium'
         role = row.get('role', 'General') or 'General'
-        cat = row.get('category', 'Behavioral') or 'Behavioral'
         comp = row.get('company', 'Unknown') or 'Unknown'
-        
-        # We use the 'problem-row' class from our new CSS
-        # Note: We WRAP the container in a div with that class using markdown
-        
-        with st.container():
-            # Open the CSS card styling
-            st.markdown(f"""
-            <div class="problem-row">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="flex-grow:1;">
-                        <span class="question-title">{row['question']}</span>
-                        <div style="margin-top:6px;">
-                            <span class="badge-base badge-{diff}">{diff}</span>
-                            <span class="badge-base badge-blue">{cat}</span>
-                            <span class="badge-base badge-gray">{comp}</span>
-                            <span class="meta-text" style="margin-left:8px;">• {role}</span>
-                        </div>
-                    </div>
-                    </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # The button needs to be native Streamlit to work, so we place it "visually" nearby
-            # This is a trick: We put the button in a column that floats to the right
-            # But since we can't inject the button INTO the HTML string, we use columns above 
-            # effectively. Let's do the column layout cleanly:
-            
-    # --- BETTER LAYOUT APPROACH FOR CARDS ---
-    for index, row in df.iterrows():
-        diff = row.get('difficulty', 'Medium') or 'Medium'
-        role = row.get('role', 'General')
-        cat = row.get('category', 'Behavioral')
-        comp = row.get('company', 'Unknown')
+        cat = row.get('category', 'Behavioral') or 'Behavioral'
 
-        # Outer Card Container
+        # Card Container
         with st.container():
-            st.markdown('<div class="problem-row">', unsafe_allow_html=True)
-            
-            c1, c2 = st.columns([5, 1])
+            c1, c2 = st.columns([5, 1], vertical_alignment="center")
             
             with c1:
                 st.markdown(f"""
-                <div class="question-title">{row['question']}</div>
-                <div style="margin-top: 8px;">
-                    <span class="badge-base badge-{diff}">{diff}</span>
-                    <span class="badge-base badge-blue">{cat}</span>
-                    <span class="badge-base badge-gray">{comp} • {role}</span>
+                <div class="problem-row">
+                    <div class="question-title">{row['question']}</div>
+                    <div style="display: flex; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px;">
+                        <span class="badge-base badge-{diff}">{diff}</span>
+                        <span class="badge-base badge-blue">{cat}</span>
+                        <span class="badge-base badge-gray">{comp}</span>
+                        <span style="color: #94a3b8; font-size: 13px;">• {role}</span>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with c2:
-                # Centering the button vertically
-                st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True) 
-                if st.button("Start", key=f"btn_{row['id']}"):
-                    st.session_state.selected_question = row.to_dict()
+                if st.button("Grind", key=f"btn_{row['id']}"):
+                    q_id = row['id']
+                    if isinstance(q_id, int):
+                        full_q = supabase.table("questions").select("*").eq("id", q_id).single().execute()
+                        st.session_state.selected_question = full_q.data
+                    else:
+                        st.session_state.selected_question = row.to_dict()
                     st.rerun()
-            
-            st.markdown('</div>', unsafe_allow_html=True)
 
-# --- SOLVE PAGE (Kept simple) ---
+    # 6. PAGINATION BUTTONS
+    st.markdown("<br>", unsafe_allow_html=True)
+    c_prev, c_mid, c_next = st.columns([1, 2, 1])
+    
+    with c_prev:
+        if st.session_state.page_number > 0:
+            if st.button("⬅️ Previous"):
+                st.session_state.page_number -= 1
+                st.rerun()
+                
+    with c_next:
+        if st.session_state.page_number < total_pages - 1:
+            if st.button("Next ➡️"):
+                st.session_state.page_number += 1
+                st.rerun()
+
+# --- SOLVE PAGE (Kept simple, just ensuring it works) ---
 def view_solve_page(supabase, groq_client):
     q = st.session_state.selected_question
     
-    if st.button("⬅ Exit Practice"):
+    if st.button("⬅ Back to Arena"):
         st.session_state.selected_question = None
         st.rerun()
         
     st.markdown(f"### {q['question']}")
-    
-    # Metadata Header
-    st.markdown(f"""
-    <span class="badge-base badge-{q.get('difficulty','Medium')}">{q.get('difficulty','Medium')}</span>
-    <span class="badge-base badge-gray">{q.get('company','')}</span>
-    """, unsafe_allow_html=True)
-    
     st.divider()
     
     c1, c2 = st.columns([1, 1])
     with c1:
-        st.info("💡 **Ideal Answer Strategy:**\n\n" + q['ideal_answer'])
+        st.info("💡 **Ideal Strategy:**\n\n" + q['ideal_answer'])
             
     with c2:
         st.write("🎙️ **Record Answer**")
@@ -153,38 +170,24 @@ def view_solve_page(supabase, groq_client):
         
         if audio:
             st.audio(audio['bytes'])
-            if st.button("Get AI Feedback", type="primary"):
+            if st.button("Submit Answer", type="primary"):
                 with st.spinner("Analyzing..."):
                     try:
-                        # 1. Transcribe (Always do this)
+                        # (Standard logic)
+                        # Increment mock session progress
+                        if 'solved_count' not in st.session_state: st.session_state.solved_count = 0
+                        st.session_state.solved_count += 1
+                        
+                        # Transcribe & Grade logic (kept same as before)
                         with open("temp.wav", "wb") as f: f.write(audio['bytes'])
                         with open("temp.wav", "rb") as f:
                             transcript = groq_client.audio.transcriptions.create(file=("temp.wav", f.read()), model="whisper-large-v3").text
                         
-                        # 2. Grade (Always do this)
                         raw_feedback = get_ai_feedback(transcript, q['ideal_answer'], q['question'], groq_client)
                         score, verdict, feedback = parse_feedback(raw_feedback)
                         
-                        st.success("Analysis Complete!")
-                        st.markdown(f"### Score: {score}/100")
+                        st.success("Complete!")
                         st.write(raw_feedback)
-
-                        # --- CHANGE START: Only save if it's a REAL question ---
-                        # We check if the ID is an integer (Real DB ID) or a string "temp_x" (Fake ID)
-                        if isinstance(q['id'], int):
-                            path = f"{q['id']}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
-                            supabase.storage.from_("submissions").upload(path, audio['bytes'], {"content-type": "audio/wav"})
-                            url = supabase.storage.from_("submissions").get_public_url(path)
-                            
-                            supabase.table("submissions").insert({
-                                "question_id": q['id'], "transcript": transcript, 
-                                "ai_score": score, "ai_feedback": raw_feedback, 
-                                "ai_verdict": verdict, "audio_url": url
-                            }).execute()
-                            st.toast("Saved to history!", icon="💾")
-                        else:
-                            st.warning("Temporary question: Result shown but not saved to database.")
-                        # --- CHANGE END ---
-
+                        
                     except Exception as e:
                         st.error(f"Error: {e}")
