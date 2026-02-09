@@ -261,7 +261,7 @@ def view_problem_list():
             if st.button("Start", key=f"btn_{row['id']}"):
                 # Force fetch the full question (including ideal_answer) from DB
                 # Note: We cast row['id'] to int just to be safe, but the query handles it.
-                full_q = supabase.table("questions").select("*").eq("id", int(row['id'])).single().execute()
+                full_q = supabase.table("questions").select("*").eq("id", row['id']).single().execute()
                 st.session_state.selected_question = full_q.data
                 st.rerun()
         
