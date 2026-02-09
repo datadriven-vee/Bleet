@@ -1,99 +1,107 @@
 /* assets/style.css */
 
-/* --- 1. THEME BASE (Grok-like Aurora Background) --- */
+/* --- 1. THEME BASE --- */
 .stApp {
-    background: radial-gradient(circle at 10% 20%, rgb(15, 23, 42) 0%, rgb(18, 18, 28) 90%);
+    background: radial-gradient(circle at 50% 10%, rgb(15, 23, 42) 0%, rgb(18, 18, 28) 100%);
     color: #ffffff;
     font-family: 'Inter', sans-serif;
 }
 
-/* --- 2. THE ARENA HEADER --- */
-/* A glowing title */
+/* --- 2. HEADER GLOW --- */
 .glow-header {
     font-size: 3rem;
     font-weight: 800;
     background: linear-gradient(90deg, #60a5fa, #c084fc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
-    margin-bottom: 0px;
+    text-shadow: 0 0 40px rgba(192, 132, 252, 0.4);
+    letter-spacing: -2px;
 }
 
-/* --- 3. DIFFICULTY TAG CLOUD (Animated Pills) --- */
-.tag-cloud-container {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-/* We style the radio buttons to look like floating pills */
+/* --- 3. THE "TAG CLOUD" (Styled Radio Buttons) --- */
+/* This transforms the boring list into floating pills */
 div[role="radiogroup"] {
     display: flex;
-    flex-direction: row;
-    gap: 12px;
-}
-div[role="radiogroup"] label {
-    background-color: #1e293b !important;
-    border: 1px solid #334155 !important;
-    padding: 8px 16px !important;
-    border-radius: 20px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-/* Hover Animation */
-div[role="radiogroup"] label:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(96, 165, 250, 0.4);
-    border-color: #60a5fa !important;
+    flex-wrap: wrap; /* Allows them to stack like a cloud */
+    gap: 10px;
 }
 
-/* --- 4. THE CARD (Glassmorphism) --- */
+div[role="radiogroup"] label {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid #334155 !important;
+    padding: 6px 16px !important;
+    border-radius: 99px !important; /* Pill shape */
+    transition: all 0.2s ease;
+    cursor: pointer !important;
+}
+
+div[role="radiogroup"] label:hover {
+    border-color: #a78bfa !important;
+    background-color: rgba(167, 139, 250, 0.1) !important;
+    transform: translateY(-2px);
+}
+
+/* When Selected */
+div[role="radiogroup"] [data-checked="true"] + div {
+    color: #a78bfa !important;
+    font-weight: bold;
+}
+
+/* --- 4. CURSOR FIXES (Aggressive) --- */
+/* Forces the hand cursor on all Select boxes and inputs */
+div[data-baseweb="select"] { cursor: pointer !important; }
+div[data-baseweb="select"] * { cursor: pointer !important; }
+button { cursor: pointer !important; }
+
+/* --- 5. CARDS (Glassmorphism) --- */
 .problem-row {
-    background: rgba(30, 41, 59, 0.7); /* Semi-transparent */
-    backdrop-filter: blur(10px);        /* Blur effect behind */
-    padding: 20px 24px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(10px);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
 }
 
 .problem-row:hover {
-    transform: scale(1.01);
-    border-color: #8b5cf6; /* Purple glow border */
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); /* Purple glow shadow */
+    background: rgba(30, 41, 59, 0.7);
+    border-color: #a78bfa;
+    box-shadow: 0 0 25px rgba(167, 139, 250, 0.15);
 }
 
-/* Typography inside cards */
 .question-title {
-    color: #f8fafc;
-    font-size: 18px;
+    color: #f1f5f9;
+    font-size: 16px;
     font-weight: 600;
-    margin-bottom: 8px;
-    display: block;
-    letter-spacing: -0.01em;
 }
 
-/* --- 5. PROGRESS CHART CONTAINER --- */
-.chart-container {
-    background: #0f172a;
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid #334155;
-    text-align: center;
-}
-
-/* --- 6. BUTTONS (Neon) --- */
+/* --- 6. BUTTONS --- */
+/* The "Start" button */
 div.stButton > button {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
     border: none;
-    padding: 8px 24px;
     border-radius: 8px;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: opacity 0.2s;
 }
 div.stButton > button:hover {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
-    transform: translateY(-1px);
+    opacity: 0.9;
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
 }
+
+/* --- 7. BADGES --- */
+.badge-base {
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.badge-Easy { background: #064e3b; color: #6ee7b7; }
+.badge-Medium { background: #451a03; color: #fdba74; }
+.badge-Hard { background: #450a0a; color: #fca5a5; }
+.badge-blue { background: #172554; color: #93c5fd; }
+.badge-gray { background: #1e293b; color: #94a3b8; }
