@@ -195,7 +195,7 @@ def view_custom_generator():
 
 
 def view_problem_list():
-    st.title("📚 Question Library")
+    st.title("Think Clear, Be You")
     
     # Fetch Data
     @st.cache_data(ttl=5) 
@@ -257,15 +257,12 @@ def view_problem_list():
             """, unsafe_allow_html=True)
             
         with c2:
-            # The Button (No hacks needed now!)
+            # The Button (Updated Logic)
             if st.button("Start", key=f"btn_{row['id']}"):
-                q_id = row['id']
-                # Check if it's a real DB question or temporary AI question
-                if isinstance(q_id, int):
-                    full_q = supabase.table("questions").select("*").eq("id", q_id).single().execute()
-                    st.session_state.selected_question = full_q.data
-                else:
-                    st.session_state.selected_question = row.to_dict() # Use the row data directly for temp questions
+                # Force fetch the full question (including ideal_answer) from DB
+                # Note: We cast row['id'] to int just to be safe, but the query handles it.
+                full_q = supabase.table("questions").select("*").eq("id", int(row['id'])).single().execute()
+                st.session_state.selected_question = full_q.data
                 st.rerun()
         
         # Add a subtle separator
