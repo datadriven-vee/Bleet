@@ -1,87 +1,99 @@
 /* assets/style.css */
 
-/* 1. Global Dark Theme */
+/* --- 1. THEME BASE (Grok-like Aurora Background) --- */
 .stApp {
-    background-color: #0e1117; /* Very dark background */
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(circle at 10% 20%, rgb(15, 23, 42) 0%, rgb(18, 18, 28) 90%);
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
 }
 
-/* 2. Problem Row Container */
+/* --- 2. THE ARENA HEADER --- */
+/* A glowing title */
+.glow-header {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #60a5fa, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
+    margin-bottom: 0px;
+}
+
+/* --- 3. DIFFICULTY TAG CLOUD (Animated Pills) --- */
+.tag-cloud-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+/* We style the radio buttons to look like floating pills */
+div[role="radiogroup"] {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+div[role="radiogroup"] label {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Hover Animation */
+div[role="radiogroup"] label:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(96, 165, 250, 0.4);
+    border-color: #60a5fa !important;
+}
+
+/* --- 4. THE CARD (Glassmorphism) --- */
 .problem-row {
-    background-color: #161b22; /* Slightly lighter row */
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 1px solid #30363d;
-    margin-bottom: 8px;
-    transition: all 0.2s ease;
+    background: rgba(30, 41, 59, 0.7); /* Semi-transparent */
+    backdrop-filter: blur(10px);        /* Blur effect behind */
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
 .problem-row:hover {
-    border-color: #8b949e;
-    background-color: #1f2428;
+    transform: scale(1.01);
+    border-color: #8b5cf6; /* Purple glow border */
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); /* Purple glow shadow */
 }
 
-/* 3. Text Styles */
+/* Typography inside cards */
 .question-title {
-    color: #58a6ff; /* GitHub Blue for links/titles */
-    font-size: 16px;
+    color: #f8fafc;
+    font-size: 18px;
     font-weight: 600;
-    margin-bottom: 4px;
-}
-.company-text {
-    color: #8b949e;
-    font-size: 14px;
+    margin-bottom: 8px;
+    display: block;
+    letter-spacing: -0.01em;
 }
 
-/* 4. Badges (The pills) */
-.badge-base {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    margin-right: 6px;
-    border: 1px solid rgba(255,255,255,0.1);
+/* --- 5. PROGRESS CHART CONTAINER --- */
+.chart-container {
+    background: #0f172a;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #334155;
+    text-align: center;
 }
 
-/* Difficulty Colors */
-.badge-Easy { background-color: #238636; color: #fff; border:none;}     /* Green */
-.badge-Medium { background-color: #d29922; color: #000; border:none;}   /* Orange/Yellow */
-.badge-Hard { background-color: #da3633; color: #fff; border:none;}     /* Red */
-
-/* Meta Tags (Role, Exp, Category) */
-.badge-gray { background-color: #21262d; color: #c9d1d9; } 
-.badge-blue { background-color: #1f6feb; color: #fff; }
-
-/* 5. Button Tweaks */
+/* --- 6. BUTTONS (Neon) --- */
 div.stButton > button {
-    width: 100%;
-    border-radius: 6px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 8px;
     font-weight: 600;
-    background-color: #21262d;
-    color: #c9d1d9;
-    border: 1px solid #30363d;
+    transition: all 0.3s ease;
 }
 div.stButton > button:hover {
-    background-color: #30363d;
-    border-color: #8b949e;
-    color: white;
-}
-
-/* --- FIXES --- */
-
-/* 1. Force Hand Cursor on Dropdowns */
-div[data-baseweb="select"] > div {
-    cursor: pointer !important;
-}
-div[data-baseweb="select"] {
-    cursor: pointer !important;
-}
-
-/* 2. Fix Button Alignment in the card */
-/* We remove the old negative margin hack and just vertically center it */
-div.stButton > button {
-    margin-top: 0px !important; /* Reset any weird margins */
-    height: auto;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+    transform: translateY(-1px);
 }
