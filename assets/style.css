@@ -1,13 +1,87 @@
 /* assets/style.css */
-[data-testid="stAppViewContainer"] {
-    background-color: #0e1117; /* Dark modern background */
-    align-items: center;
-    justify-content: center;
+
+/* 1. Global Dark Theme */
+.stApp {
+    background-color: #0e1117; /* Very dark background */
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* 2. Problem Row Container */
+.problem-row {
+    background-color: #161b22; /* Slightly lighter row */
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+.problem-row:hover {
+    border-color: #8b949e;
+    background-color: #1f2428;
+}
+
+/* 3. Text Styles */
+.question-title {
+    color: #58a6ff; /* GitHub Blue for links/titles */
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.company-text {
+    color: #8b949e;
+    font-size: 14px;
+}
+
+/* 4. Badges (The pills) */
+.badge-base {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-right: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Difficulty Colors */
+.badge-Easy { background-color: #238636; color: #fff; border:none;}     /* Green */
+.badge-Medium { background-color: #d29922; color: #000; border:none;}   /* Orange/Yellow */
+.badge-Hard { background-color: #da3633; color: #fff; border:none;}     /* Red */
+
+/* Meta Tags (Role, Exp, Category) */
+.badge-gray { background-color: #21262d; color: #c9d1d9; } 
+.badge-blue { background-color: #1f6feb; color: #fff; }
+
+/* 5. Button Tweaks */
 div.stButton > button {
     width: 100%;
-    border-radius: 8px;
-    height: 3em;
+    border-radius: 6px;
     font-weight: 600;
+    background-color: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+}
+div.stButton > button:hover {
+    background-color: #30363d;
+    border-color: #8b949e;
+    color: white;
+}
+
+/* --- FIXES --- */
+
+/* 1. Force Hand Cursor on Dropdowns */
+div[data-baseweb="select"] > div {
+    cursor: pointer !important;
+}
+div[data-baseweb="select"] {
+    cursor: pointer !important;
+}
+
+/* 2. Fix Button Alignment in the card */
+/* We remove the old negative margin hack and just vertically center it */
+div.stButton > button {
+    margin-top: 0px !important; /* Reset any weird margins */
+    height: auto;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
