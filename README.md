@@ -7,7 +7,7 @@
 
 **Bleet** is an AI-powered platform designed to master the hardest part of tech interviews: **The Behavioral Round.** Unlike generic flashcards, Bleet uses **Llama 3 (via Groq)** to generate highly specific scenario-based questions from your actual Resume and Job Description, ensuring you practice for the *exact* role you want.
 
-🔗 **[Live Demo](https://datadriven-vee-bleet-app-8cva1x.streamlit.app)** 
+🔗 **[Live Demo](https://bleetprep.streamlit.app/)** 
 
 ## 🚀 Key Features
 
